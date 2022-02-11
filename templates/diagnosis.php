@@ -32,12 +32,7 @@
                     </div>
 
                     
-                    <div class="card-block">
-                    <!-- Button to Open the Modal -->
-                    <button class="btn waves-effect waves-light btn-grd-primary" data-toggle="modal" data-target="#myModal" onclick="showQModal()">
-                        Start diagnosis
-                    </button>
-                    </div><br>
+                    
                     <!-- TODO:: collect user data-->
                     
 
@@ -79,7 +74,7 @@
                     
                     <div class="row">
                         <div class="col-md-4">
-                            <div class="card">
+                            <div class="card" id="c1">
                                 <div class="card-header">
                                     <h5>Insert Clues</h5>
                                     <!--<span>Add class of <code>.form-control</code> with <code>&lt;input&gt;</code> tag</span>-->
@@ -91,12 +86,10 @@
                                             <textarea class="form-control" required=""></textarea>
                                             <span class="form-bar"></span>
                                             <label class="float-label">Symptom input</label>
-                                            <ol>
-                                                <?php foreach($symptoms as $sym): ?>
-                                                    <?php if(is_numeric($sym)){continue;} ?>
-                                                    <li><?php echo $sym; ?></li>
-                                                <?php endforeach;?>
-                                            </ol>
+                                            
+                                            <button class="btn waves-effect waves-light btn-grd-secondary border border-primary" style="width:100%">
+                                                Submit
+                                            </button>
                                             
                                         </div>
                                     </form>
@@ -105,7 +98,7 @@
                         </div>
                         
                         <div class="col-md-4">
-                            <div class="card">
+                            <div class="card" id="c2">
                                 <div class="card-header">
                                     <h5>Possible Diagnosis</h5>
                                     <!--<span>Add class of <code>.form-control</code> with <code>&lt;input&gt;</code> tag</span>-->
@@ -125,7 +118,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <div class="card">
+                            <div class="card" id="c3">
                                 <div class="card-header">
                                     <h5>Risk Factor</h5>
                                     <!--<span>Add class of <code>.form-control</code> with <code>&lt;input&gt;</code> tag</span>-->
@@ -144,6 +137,14 @@
                         </div>
                     
                     </div>
+
+                    <div class="card-block">
+                    <!-- Button to Open the Modal -->
+                        <button style="width:100%" class="btn waves-effect waves-light btn-grd-primary" data-toggle="modal" data-target="#myModal" onclick="showQModal()">
+                            Get Detailed Diagnosis
+                        </button>
+                    </div>
+
                 </div>
                 <!-- Page-body end -->
             </div>
@@ -154,6 +155,8 @@
     <script type="text/javascript" src="assets/js/jquery/jquery.min.js"></script>
     <script type="text/javascript" src="assets/js/jquery-ui/jquery-ui.min.js "></script>
     <script>
+
+       setHeight();
        var count = 0;
        var x = new Object();
        var que = <?php echo json_encode($symptoms); ?>;
@@ -215,8 +218,7 @@
 
 
        function sendData(){
-           console.log(x);
-
+           
            $(function () {
                 $('#myModal').modal('toggle');
             });
@@ -229,7 +231,6 @@
                     cache: false,
 
                     success: function(response){
-                        alert(response.toString());
                         var obj = JSON.parse(response);
                         
                         var list = document.getElementById("possible_diagnosis");
@@ -251,6 +252,13 @@
                         });
                     }
             });
+        }
+
+        function setHeight(){
+            
+            var offsetHeight = document.getElementById('c2').offsetHeight;
+            document.getElementById('c1').style.height = offsetHeight+'px';
+            console.log(offsetHeight);
         }
 
     </script>
