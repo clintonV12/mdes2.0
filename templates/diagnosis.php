@@ -34,13 +34,11 @@
                     
                     <div class="card-block">
                     <!-- Button to Open the Modal -->
-                    <button class="btn waves-effect waves-light btn-grd-primary" data-toggle="modal" data-target="#myModal" onclick="showNextQ()">
+                    <button class="btn waves-effect waves-light btn-grd-primary" data-toggle="modal" data-target="#myModal" onclick="showQModal()">
                         Start diagnosis
                     </button>
                     </div><br>
-                    
-
-
+                    <!-- TODO:: collect user data-->
                     
 
                     <!-- The Modal -->
@@ -58,7 +56,7 @@
                             <div class="modal-body">
                                 <p>Please indicate with Yes/No if you are experiancing any of these symptoms.</p>
                                 <h4 id="question"></h4>
-                                <form action="index.php" method="post">
+                                <form action="" method="post">
                                     <input name="" id="yes_label" type="radio" value="Yes">
                                     <label for="yes_label">Yes</label>
 
@@ -70,7 +68,8 @@
 
                             <!-- Modal footer -->
                             <div class="modal-footer">
-                                <button type="submit" class="btn btn-danger" data-dismiss="m3odal" onclick="showNextQ()">Continue</button>
+                                <button type="button" class="btn btn-danger" id="contBtn" data-dismiss="m3odal" onclick="showNextQ('default')">Continue</button>
+                                <button type="button" class="btn btn-danger" data-dismiss="m3odal" onclick="sendData()">Finish</button>
                             </div>
 
                             </div>
@@ -113,7 +112,7 @@
                                 </div>
                                 <div class="card-block">
                                     <form class="form-material">
-                                        <ol>
+                                        <ol id="possible_diagnosis">
                                             <?php foreach($illness as $ill): ?>
                                                 <?php if(is_numeric($ill)){continue;} ?>
                                                 <li><?php echo $ill; ?></li>
@@ -133,7 +132,7 @@
                                 </div>
                                 <div class="card-block">
                                     <form class="form-material">
-                                        <ol>
+                                        <ol id="risk_factor">
                                             <?php foreach($risks as $risk): ?>
                                                 <?php if(is_numeric($risk)){continue;} ?>
                                                 <li><?php echo $risk; ?></li>
@@ -156,21 +155,104 @@
     <script type="text/javascript" src="assets/js/jquery-ui/jquery-ui.min.js "></script>
     <script>
        var count = 0;
-       function showNextQ(){
-            count = count + 1;
-            var que = <?php echo json_encode($symptoms); ?>;
-            
-            var q_display = que[count].replace(/_/g, ' ');
-            q_display = q_display.charAt(0).toUpperCase() + q_display.slice(1);
+       var x = new Object();
+       var que = <?php echo json_encode($symptoms); ?>;
 
-            document.getElementById("cn").innerHTML = count;
+       function showNextQ(param = null){
+           if(count < que.length){
+                
+                if(document.getElementById("yes_label").checked == true){
+                    x[count]= que[count]+">Yes";
+                }
+                if(document.getElementById("no_label").checked == true){
+                    x[count-1]= que[count-1]+">No";
+                }
+
+                document.getElementById("yes_label").checked = false;
+                document.getElementById("no_label").checked = false;
+                //check if value is not null
+                if(!!param){
+                    count = count + 1;
+                }
+
+                var q_display = null;
+                try {
+                    q_display = que[count].replace(/_/g, ' ');
+                    q_display = q_display.charAt(0).toUpperCase() + q_display.slice(1);
+                } catch (error) {
+                    console.error(error);
+                }
+                
+
+                document.getElementById("cn").innerHTML = count+1;
+                document.getElementById("question").innerHTML = q_display;
+                document.getElementById("yes_label").setAttribute("name",que[count]);
+                document.getElementById("no_label").setAttribute("name",que[count]);
+                
+            }
+       }
+
+       function showQModal(){
+           var count = 0;
+
+            var q_display = null;
+            try {
+                q_display = que[count].replace(/_/g, ' ');
+                q_display = q_display.charAt(0).toUpperCase() + q_display.slice(1);
+            } catch (error) {
+                console.error(count);
+                console.error(que[count]);
+                console.error(error);
+            }
+            
+
+            document.getElementById("cn").innerHTML = count+1;
             document.getElementById("question").innerHTML = q_display;
             document.getElementById("yes_label").setAttribute("name",que[count]);
             document.getElementById("no_label").setAttribute("name",que[count]);
             
-            document.getElementById("yes_label").checked = false;
-            document.getElementById("no_label").checked = false;
        }
+
+
+       function sendData(){
+           console.log(x);
+
+           $(function () {
+                $('#myModal').modal('toggle');
+            });
+
+           var jsonString = JSON.stringify(x);
+            $.ajax({
+                    type: "POST",
+                    url: "index.php?action=diagnosis-reponse",
+                    data: {data : jsonString}, 
+                    cache: false,
+
+                    success: function(response){
+                        alert(response.toString());
+                        var obj = JSON.parse(response);
+                        
+                        var list = document.getElementById("possible_diagnosis");
+                        var list2 = document.getElementById("risk_factor");
+
+                        list.innerHTML = "";
+                        list2.innerHTML = "";
+
+                        obj.forEach((item)=>{
+                            const myArray = item.split("=");
+
+                            var li = document.createElement("li");
+                            li.innerText = myArray[0];
+                            list.appendChild(li);
+
+                            var li = document.createElement("li");
+                            li.innerText = myArray[1];
+                            list2.appendChild(li);
+                        });
+                    }
+            });
+        }
+
     </script>
 
 <?php require_once("includes/lower.php"); 

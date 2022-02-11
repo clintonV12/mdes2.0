@@ -3,17 +3,12 @@
 require( "config.php" );
 
 session_start();
-
 $action = isset( $_GET['action'] ) ? $_GET['action'] : "";
 $username = isset( $_SESSION['username'] ) ? $_SESSION['username'] : "";
 
 if ( $action != "login" && $action != "logout" && $action != "register" && !$username ) {
   login();
   exit;
-}
-
-if(isset($_POST['diagnosis-resp'])){
-  $action = "diagnosis-reponse";
 }
 
 //var_dump($_POST);die();
@@ -258,6 +253,7 @@ function editFamilyHistory(){
 
 function viewDiagnosis(){
   require_once("lib/inferance_engine.php");
+  
   $profileIsSet = false;
   $results = array();
   $results['pageTitle'] = "Diagnosis";
@@ -360,14 +356,40 @@ function editMeds(){
 }
 
 function getDiagnosisResponse(){
-  
+  require_once("lib/inferance_engine.php");
+
   $results = array();
   $results['pageTitle'] = "Diagnosis";
   $results['diagnosisFormAction'] = "diagnosis-reponse";
 
   if(isset($_SESSION['username'])){$results['username'] = $_SESSION['username'];}
   if(!isset($_SESSION['username'])){homepage();}
+  
 
+  $data = json_decode(stripslashes($_POST['data']));
+  // here i would like use foreach:
+  $a1 = array();
+  foreach($data as $d){
+    $str_arr = explode (">", $d); 
+    $question = $str_arr[0];
+    $answer   = $str_arr[1];
 
-  require( TEMPLATE_PATH . "/diagnosis.php" );
+    if($answer == "Yes"){
+      $a1[] = $question;
+    }
+  }
+  
+  $response = array();
+
+  risk_factor( $illness );
+  $diagnosis_result = getPrognosis($a1);
+
+  foreach($diagnosis_result as $res){
+    $rf = risk_factor($res);
+    
+    array_push($response,$res."=".$rf);
+  }
+
+  echo json_encode($response);
+
 }
